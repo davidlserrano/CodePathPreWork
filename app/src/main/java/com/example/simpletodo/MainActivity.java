@@ -26,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String KEY_ITEM_TEXT = "item_text";
     public static final String KEY_ITEM_POSITION = "item_position";
     public static final int EDIT_TEXT_CODE = 20;
+    public static final int DELETE_TEXT_CODE = 10;
+    public static final String KEY_DELETE_RESULT = "delete_result";
 
     List<String> items;
     Button addBtn;
@@ -47,14 +49,18 @@ public class MainActivity extends AppCompatActivity {
         ItemsAdapter.OnLongClickListener onLongClickListener = new ItemsAdapter.OnLongClickListener(){
             @Override
             public void onItemLongCLicked(int position) {
-                // Delete the item from the model
-                items.remove(position);
-                // Notify the adapter
-                itemsAdapter.notifyItemRemoved(position);
-                Toast.makeText(getApplicationContext(), "Item was removed", Toast.LENGTH_SHORT).show();
-                saveItems();
+                Toast.makeText(getApplicationContext(), "Item " + position +" was longclicked", Toast.LENGTH_SHORT).show();
+
+                Intent i = new Intent(MainActivity.this, PopActivity.class);
+
+                // pass the data being edited
+                i.putExtra(KEY_ITEM_POSITION, position);
+
+                // display the activity
+                startActivityForResult(i, DELETE_TEXT_CODE);
             }
         };
+
         ItemsAdapter.OnClickListener onClickListener = new ItemsAdapter.OnClickListener() {
             @Override
             public void onItemClicked(int position) {
@@ -94,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         if (resultCode == RESULT_OK && requestCode == EDIT_TEXT_CODE) {
             // Retreive the updated text value
             String itemText = data.getStringExtra(KEY_ITEM_TEXT);
@@ -109,6 +116,16 @@ public class MainActivity extends AppCompatActivity {
             // persist the changes
             saveItems();
             Toast.makeText(getApplicationContext(), "Item updated successfully!", Toast.LENGTH_SHORT).show();
+        } else if (resultCode == RESULT_OK && requestCode == DELETE_TEXT_CODE){
+            if(data.getExtras().getBoolean(KEY_DELETE_RESULT) == true){
+                // Delete the item from the model
+                items.remove(data.getExtras().getInt(KEY_ITEM_POSITION));
+                // Notify the adapter
+                itemsAdapter.notifyItemRemoved(data.getExtras().getInt(KEY_ITEM_POSITION));
+                Toast.makeText(getApplicationContext(), "Item was removed", Toast.LENGTH_SHORT).show();
+                saveItems();
+            }
+
         } else {
             Log.w("MainActivity", "Unknown call to onActivityResult");
         }
